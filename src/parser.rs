@@ -35,10 +35,24 @@ pub struct GraphQLRequest {
 }
 
 #[derive(Debug, Clone)]
+pub struct RSocketRequest {
+    pub uri: String,
+    pub headers: HashMap<String, String>,
+    pub messages: Vec<RSocketMessage>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RSocketMessage {
+    pub content: String,
+    pub wait_for_server: usize,
+}
+
+#[derive(Debug, Clone)]
 pub enum Request {
     Http(HttpRequest),
     WebSocket(WebSocketRequest),
     GraphQL(GraphQLRequest),
+    RSocket(RSocketRequest),
 }
 
 pub struct HttpFileParser {
@@ -76,7 +90,7 @@ impl HttpFileParser {
                     if !rest.is_empty() {
                         // Check if the entire rest is a single HTTP method word
                         let rest_upper = rest.to_uppercase();
-                        let is_single_method = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "WEBSOCKET", "GRAPHQL"]
+                        let is_single_method = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "WEBSOCKET", "GRAPHQL", "RSOCKET"]
                             .contains(&rest_upper.as_str());
                         if !is_single_method {
                             Some(rest.to_string())
@@ -94,9 +108,12 @@ impl HttpFileParser {
                     requests.push(request);
                 }
             } else if line.starts_with("WEBSOCKET") {
-            } else if line.starts_with("WEBSOCKET") {
                 if let Some(ws_request) = self.parse_websocket()? {
                     requests.push(Request::WebSocket(ws_request));
+                }
+            } else if line.starts_with("RSOCKET") {
+                if let Some(rs_request) = self.parse_rsocket()? {
+                    requests.push(Request::RSocket(rs_request));
                 }
             } else if line.starts_with("GRAPHQL") {
                 if let Some(gql_request) = self.parse_graphql()? {
@@ -136,7 +153,7 @@ impl HttpFileParser {
             // Check if current line is a name (not a method, not a URL, not a header)
             if !line.is_empty() && !line.starts_with("http") && !line.starts_with("//") && !line.starts_with("#") {
                 let first_word = line.split_whitespace().next().unwrap_or("").to_uppercase();
-                let is_method = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "WEBSOCKET", "GRAPHQL"]
+                let is_method = ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "WEBSOCKET", "GRAPHQL", "RSOCKET"]
                     .contains(&first_word.as_str());
                 if !is_method && !line.contains(':') && !line.contains("://") {
                     name = Some(line.to_string());
@@ -225,7 +242,7 @@ impl HttpFileParser {
                 }
 
                 // Check for other request types
-                if trimmed.starts_with("WEBSOCKET") || trimmed.starts_with("GRAPHQL") {
+                if trimmed.starts_with("WEBSOCKET") || trimmed.starts_with("GRAPHQL") || trimmed.starts_with("RSOCKET") {
                     break;
                 }
 
@@ -296,7 +313,7 @@ impl HttpFileParser {
         while self.current_line < self.lines.len() {
             let line = self.lines[self.current_line].trim();
             
-            if line.starts_with("###") || line.starts_with("WEBSOCKET") || line.starts_with("GRAPHQL") {
+            if line.starts_with("###") || line.starts_with("WEBSOCKET") || line.starts_with("GRAPHQL") || line.starts_with("RSOCKET") {
                 break;
             }
 
@@ -332,6 +349,88 @@ impl HttpFileParser {
         }
 
         Ok(Some(WebSocketRequest {
+            uri,
+            headers,
+            messages,
+        }))
+    }
+
+    fn parse_rsocket(&mut self) -> Result<Option<RSocketRequest>> {
+        let line = self.lines[self.current_line].trim();
+        let parts: Vec<&str> = line.split_whitespace().collect();
+
+        if parts.len() < 2 {
+            return Ok(None);
+        }
+
+        let uri = parts[1].to_string();
+        self.current_line += 1;
+
+        let mut headers = HashMap::new();
+        let mut messages = Vec::new();
+        let mut current_message = Vec::new();
+        let mut wait_count = 0;
+
+        // Parse headers
+        while self.current_line < self.lines.len() {
+            let line = self.lines[self.current_line].trim();
+
+            if line.is_empty() {
+                self.current_line += 1;
+                break;
+            }
+
+            if line.starts_with("//") || line.starts_with("#") {
+                self.current_line += 1;
+                continue;
+            }
+
+            if let Some(colon_pos) = line.find(':') {
+                let key = line[..colon_pos].trim().to_string();
+                let value = line[colon_pos + 1..].trim().to_string();
+                headers.insert(key, value);
+            }
+
+            self.current_line += 1;
+        }
+
+        // Parse messages
+        while self.current_line < self.lines.len() {
+            let line = self.lines[self.current_line].trim();
+
+            if line.starts_with("###") || line.starts_with("WEBSOCKET") || line.starts_with("GRAPHQL") || line.starts_with("RSOCKET") {
+                break;
+            }
+
+            if line == "===" || line.starts_with("=== wait-for-server") {
+                if !current_message.is_empty() {
+                    messages.push(RSocketMessage {
+                        content: current_message.join("\n"),
+                        wait_for_server: wait_count,
+                    });
+                    current_message.clear();
+                }
+
+                if line.contains("wait-for-server") {
+                    wait_count += 1;
+                } else {
+                    wait_count = 0;
+                }
+            } else if !line.starts_with("//") && !line.starts_with("#") {
+                current_message.push(self.lines[self.current_line].clone());
+            }
+
+            self.current_line += 1;
+        }
+
+        if !current_message.is_empty() {
+            messages.push(RSocketMessage {
+                content: current_message.join("\n"),
+                wait_for_server: wait_count,
+            });
+        }
+
+        Ok(Some(RSocketRequest {
             uri,
             headers,
             messages,
@@ -381,7 +480,7 @@ impl HttpFileParser {
         while self.current_line < self.lines.len() {
             let line = self.lines[self.current_line].trim();
             
-            if line.starts_with("###") || line.starts_with("WEBSOCKET") || line.starts_with("GRAPHQL") {
+            if line.starts_with("###") || line.starts_with("WEBSOCKET") || line.starts_with("GRAPHQL") || line.starts_with("RSOCKET") {
                 break;
             }
 
@@ -406,7 +505,8 @@ impl HttpFileParser {
                     let next_line = &self.lines[self.current_line];
                     if next_line.trim().starts_with("###") || 
                        next_line.trim().starts_with("WEBSOCKET") || 
-                       next_line.trim().starts_with("GRAPHQL") {
+                       next_line.trim().starts_with("GRAPHQL") ||
+                       next_line.trim().starts_with("RSOCKET") {
                         break;
                     }
                     var_lines.push(next_line.clone());
@@ -573,6 +673,137 @@ Content-Type: application/json
             assert_eq!(ws.uri, "ws://localhost:8080/ws");
             assert_eq!(ws.messages.len(), 2);
             assert_eq!(ws.messages[0].wait_for_server, 0);
+        }
+    }
+
+    #[test]
+    fn test_parse_rsocket() {
+        let content = r###"
+### RSocket Test
+RSOCKET ws://localhost:7878/rsocket
+Content-Type: application/json
+
+{
+  "message": "Ping"
+}
+
+===
+{
+  "message": "Second"
+}
+"###.to_string();
+
+        let mut parser = HttpFileParser::new(content);
+        let requests = parser.parse().unwrap();
+
+        assert_eq!(requests.len(), 1);
+        if let Request::RSocket(rs) = &requests[0] {
+            assert_eq!(rs.uri, "ws://localhost:7878/rsocket");
+            assert_eq!(rs.messages.len(), 2);
+            assert_eq!(rs.messages[0].wait_for_server, 0);
+        }
+    }
+
+    #[test]
+    fn test_parse_rsocket_with_wait_for_server() {
+        // Parser expects "=== wait-for-server" on one line (same as WebSocket format)
+        let content = r###"
+RSOCKET ws://localhost:8080/rsocket
+
+{ "first": true }
+
+=== wait-for-server
+{ "after": "response" }
+"###.to_string();
+
+        let mut parser = HttpFileParser::new(content);
+        let requests = parser.parse().unwrap();
+
+        assert_eq!(requests.len(), 1);
+        if let Request::RSocket(rs) = &requests[0] {
+            assert_eq!(rs.messages.len(), 2);
+            assert_eq!(rs.messages[0].wait_for_server, 0);
+            assert!(rs.messages[0].content.contains("first"));
+            assert_eq!(rs.messages[1].wait_for_server, 1);
+            assert!(rs.messages[1].content.contains("after"));
+        }
+    }
+
+    #[test]
+    fn test_parse_rsocket_with_headers() {
+        let content = r###"
+RSOCKET ws://localhost:8080/rsocket
+Content-Type: application/json
+X-Custom: value
+
+{ "body": 1 }
+"###.to_string();
+
+        let mut parser = HttpFileParser::new(content);
+        let requests = parser.parse().unwrap();
+
+        assert_eq!(requests.len(), 1);
+        if let Request::RSocket(rs) = &requests[0] {
+            assert_eq!(rs.headers.get("Content-Type"), Some(&"application/json".to_string()));
+            assert_eq!(rs.headers.get("X-Custom"), Some(&"value".to_string()));
+            assert_eq!(rs.messages.len(), 1);
+        }
+    }
+
+    #[test]
+    fn test_parse_rsocket_rs_uri_stored_as_is() {
+        let content = r###"
+RSOCKET rs://localhost:7878
+{ "ping": 1 }
+"###.to_string();
+
+        let mut parser = HttpFileParser::new(content);
+        let requests = parser.parse().unwrap();
+
+        assert_eq!(requests.len(), 1);
+        if let Request::RSocket(rs) = &requests[0] {
+            assert_eq!(rs.uri, "rs://localhost:7878");
+        }
+    }
+
+    #[test]
+    fn test_parse_rsocket_single_message() {
+        let content = r###"
+RSOCKET ws://host/rsocket
+
+{"only": "message"}
+"###.to_string();
+
+        let mut parser = HttpFileParser::new(content);
+        let requests = parser.parse().unwrap();
+
+        assert_eq!(requests.len(), 1);
+        if let Request::RSocket(rs) = &requests[0] {
+            assert_eq!(rs.messages.len(), 1);
+            assert!(rs.messages[0].content.contains("only"));
+        }
+    }
+
+    #[test]
+    fn test_parse_rsocket_no_body_then_next_request() {
+        let content = r###"
+RSOCKET ws://localhost:8080/rsocket
+
+###
+GET https://api.example.com/
+"###.to_string();
+
+        let mut parser = HttpFileParser::new(content);
+        let requests = parser.parse().unwrap();
+
+        assert_eq!(requests.len(), 2);
+        if let Request::RSocket(rs) = &requests[0] {
+            assert_eq!(rs.uri, "ws://localhost:8080/rsocket");
+            assert!(rs.messages.is_empty());
+        }
+        if let Request::Http(req) = &requests[1] {
+            assert_eq!(req.method, "GET");
+            assert_eq!(req.uri, "https://api.example.com/");
         }
     }
 
