@@ -22,6 +22,8 @@ rustls = "0.21"
 rustls-pemfile = "1.0"
 base64 = "0.21"
 chrono = "0.4"
+rsocket_rust = "0.7"
+rsocket_rust_transport_websocket = "0.7"
 
 [dev-dependencies]
 tempfile = "3.8"

@@ -7,6 +7,7 @@ An HTTP Client implemented in Rust, compatible with the IntelliJ IDEA HTTP Clien
 - ✅ Parse and execute `.http` and `.rest` files
 - ✅ HTTP/HTTPS request support (GET, POST, PUT, DELETE, etc.)
 - ✅ WebSocket support
+- ✅ RSocket support (WebSocket transport, request/response)
 - ✅ GraphQL support
 - ✅ Environment variable support (`{{variable}}`)
 - ✅ Proxy configuration
@@ -109,6 +110,31 @@ wait-for-server
 }
 ```
 
+### RSocket Request
+
+RSocket uses WebSocket transport (`ws://` or `wss://`). Use `rs://` or `tcp://` and it will be converted to `ws://` for connection.
+
+```http
+### RSocket Request-Response
+RSOCKET ws://localhost:8080/rsocket
+Content-Type: application/json
+
+{
+  "message": "Hello RSocket!"
+}
+
+===
+{
+  "message": "Second request"
+}
+
+===
+wait-for-server
+{
+  "message": "After server response"
+}
+```
+
 ### GraphQL Request
 
 ```http
@@ -181,3 +207,7 @@ Private environment variable file (contains sensitive information):
 ## Examples
 
 Example files are available in the project's `examples/` directory.
+
+## License
+
+MIT OR Apache-2.0

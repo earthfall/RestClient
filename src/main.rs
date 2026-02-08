@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 use http_client::{
     HttpClientConfig, CurlConverter, EnvironmentManager, GraphQLClient, HttpClient,
     HttpRequest, Request, WebSocketClient, WebSocketRequest, GraphQLRequest,
+    RSocketClient, RSocketRequest,
 };
 use std::path::PathBuf;
 
@@ -125,6 +126,7 @@ async fn run_requests(
     // Create HTTP client
     let http_client = HttpClient::new(client_config.clone(), env_manager.clone(), base_path)?;
     let ws_client = WebSocketClient::new(env_manager.clone());
+    let rsocket_client = RSocketClient::new(env_manager.clone());
     let graphql_client = GraphQLClient::new(
         client_config.build_client(base_path)?,
         env_manager.clone(),
@@ -146,6 +148,10 @@ async fn run_requests(
             Request::WebSocket(ws_req) => {
                 println!("### WebSocket Request\n");
                 execute_websocket_request(&ws_client, ws_req, env_name.as_deref()).await?;
+            }
+            Request::RSocket(rs_req) => {
+                println!("### RSocket Request\n");
+                execute_rsocket_request(&rsocket_client, rs_req, env_name.as_deref()).await?;
             }
             Request::GraphQL(gql_req) => {
                 println!("### GraphQL Request\n");
@@ -192,6 +198,18 @@ async fn execute_websocket_request(
         .execute_request(request, env_name)
         .await
         .context("Failed to execute WebSocket request")?;
+    Ok(())
+}
+
+async fn execute_rsocket_request(
+    client: &RSocketClient,
+    request: &RSocketRequest,
+    env_name: Option<&str>,
+) -> Result<()> {
+    client
+        .execute_request(request, env_name)
+        .await
+        .context("Failed to execute RSocket request")?;
     Ok(())
 }
 

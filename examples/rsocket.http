@@ -1,0 +1,18 @@
+### RSocket Example (WebSocket transport)
+RSOCKET ws://localhost:8080/rsocket
+Content-Type: application/json
+
+{
+  "message": "Hello RSocket!"
+}
+
+===
+{
+  "message": "Second request"
+}
+
+===
+wait-for-server
+{
+  "message": "Sent after server response"
+}
