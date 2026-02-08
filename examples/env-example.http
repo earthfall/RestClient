@@ -1,0 +1,16 @@
+### Using Environment Variables
+GET {{API_URL}}/users
+Authorization: Bearer {{TOKEN}}
+Accept: application/json
+
+###
+
+### Post with Environment Variables
+POST {{API_URL}}/users
+Content-Type: application/json
+Authorization: Bearer {{TOKEN}}
+
+{
+  "name": "{{USER_NAME}}",
+  "email": "{{USER_EMAIL}}"
+}

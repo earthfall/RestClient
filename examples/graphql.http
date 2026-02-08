@@ -1,0 +1,35 @@
+### GraphQL Query Example
+GRAPHQL https://api.github.com/graphql
+Authorization: Bearer YOUR_TOKEN
+
+query {
+  viewer {
+    login
+    name
+    bio
+  }
+}
+
+###
+
+### GraphQL Query with Variables
+GRAPHQL https://api.github.com/graphql
+Authorization: Bearer YOUR_TOKEN
+
+query ($login: String!) {
+  user(login: $login) {
+    login
+    name
+    bio
+    repositories(first: 5) {
+      nodes {
+        name
+        description
+      }
+    }
+  }
+}
+
+{
+  "login": "octocat"
+}

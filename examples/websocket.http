@@ -1,0 +1,18 @@
+### WebSocket Example
+WEBSOCKET ws://echo.websocket.org
+Content-Type: application/json
+
+{
+  "message": "Hello WebSocket!"
+}
+
+===
+{
+  "message": "Second message"
+}
+
+===
+wait-for-server
+{
+  "message": "This will be sent after server response"
+}

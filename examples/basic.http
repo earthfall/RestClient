@@ -1,0 +1,22 @@
+### Get Request Example
+GET https://httpbin.org/get
+Accept: application/json
+
+###
+
+### Post Request Example
+POST https://httpbin.org/post
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
+
+###
+
+### Form Data Example
+POST https://httpbin.org/post
+Content-Type: application/x-www-form-urlencoded
+
+name=John+Doe&email=john%40example.com
