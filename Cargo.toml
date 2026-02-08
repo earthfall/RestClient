@@ -2,7 +2,7 @@
 name = "http-client"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <you@example.com>"]
+authors = ["Young Cho <youngikcho@gmail.com>"]
 description = "HTTP Client implementation in Rust, compatible with IntelliJ IDEA HTTP Client format"
 license = "MIT OR Apache-2.0"
 
