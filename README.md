@@ -1,5 +1,8 @@
 # HTTP Client
 
+[![CI](https://github.com/earthfall/RestClient/actions/workflows/pr-tests.yml/badge.svg)](https://github.com/earthfall/RestClient/actions/workflows/pr-tests.yml)
+[![codecov](https://codecov.io/gh/earthfall/RestClient/graph/badge.svg)](https://codecov.io/gh/earthfall/RestClient)
+
 An HTTP Client implemented in Rust, compatible with the IntelliJ IDEA HTTP Client format.
 
 ## Features
