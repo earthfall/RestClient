@@ -44,7 +44,18 @@ jobs:
         run: cargo install cargo-tarpaulin
 
       - name: Generate coverage report
-        run: cargo tarpaulin --out Xml --out Html --output-dir coverage --no-fail-fast
+        id: coverage
+        run: |
+          cargo tarpaulin --out Xml --out Html --output-dir coverage --no-fail-fast 2>&1 | tee tarpaulin-output.txt
+
+      - name: Write coverage to job summary
+        run: |
+          COVERAGE=$(grep -oE '[0-9]+\.[0-9]+%' tarpaulin-output.txt | tail -1)
+          echo "## Unit Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Line coverage** | **${COVERAGE:-N/A}** |" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
