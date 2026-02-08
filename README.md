@@ -208,6 +208,3 @@ Private environment variable file (contains sensitive information):
 
 Example files are available in the project's `examples/` directory.
 
-## License
-
-MIT OR Apache-2.0
