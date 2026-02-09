@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use http_client::{
+use rest_client::{
     HttpClientConfig, CurlConverter, EnvironmentManager, GraphQLClient, HttpClient,
     HttpRequest, Request, WebSocketClient, WebSocketRequest, GraphQLRequest,
     RSocketClient, RSocketRequest,
@@ -8,7 +8,7 @@ use http_client::{
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "http-client")]
+#[command(name = "rest-client")]
 #[command(about = "HTTP Client implementation in Rust, compatible with IntelliJ IDEA HTTP Client format")]
 struct Cli {
     #[command(subcommand)]
@@ -88,7 +88,7 @@ async fn run_requests(
         env_manager.load_private_env(path)?;
     } else {
         // Try default private env file
-        let default_private = base_path.join("http-client.private.env.json");
+        let default_private = base_path.join("rest-client.private.env.json");
         if default_private.exists() {
             env_manager.load_private_env(&default_private)?;
         }
@@ -99,14 +99,14 @@ async fn run_requests(
         env_manager.load_env_file(path)?;
     } else {
         // Try default env file
-        let default_env = base_path.join("http-client.env.json");
+        let default_env = base_path.join("rest-client.env.json");
         if default_env.exists() {
             env_manager.load_env_file(&default_env)?;
         }
     }
 
     // Parse HTTP file
-    let requests = http_client::parse_http_file(&file)
+    let requests = rest_client::parse_http_file(&file)
         .with_context(|| format!("Failed to parse file: {:?}", file))?;
 
     if requests.is_empty() {
