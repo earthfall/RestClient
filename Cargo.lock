@@ -575,30 +575,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "http-client"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "base64 0.21.7",
- "chrono",
- "clap",
- "futures-util",
- "regex",
- "reqwest",
- "rsocket_rust",
- "rsocket_rust_transport_websocket",
- "rustls",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
- "tokio-tungstenite 0.21.0",
- "url",
-]
-
-[[package]]
 name = "httparse"
 version = "1.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1155,6 +1131,30 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "winreg",
+]
+
+[[package]]
+name = "rest-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "base64 0.21.7",
+ "chrono",
+ "clap",
+ "futures-util",
+ "regex",
+ "reqwest",
+ "rsocket_rust",
+ "rsocket_rust_transport_websocket",
+ "rustls",
+ "rustls-pemfile",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite 0.21.0",
+ "url",
 ]
 
 [[package]]

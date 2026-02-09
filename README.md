@@ -23,26 +23,26 @@ An HTTP Client implemented in Rust, compatible with the IntelliJ IDEA HTTP Clien
 cargo build --release
 ```
 
-The built binary is generated at `target/release/http-client`.
+The built binary is generated at `target/release/rest-client`.
 
 ## Usage
 
 ### Running HTTP Requests
 
 ```bash
-http-client run example.http
+rest-client run example.http
 ```
 
 Using environment variables:
 
 ```bash
-http-client run example.http --env dev
+rest-client run example.http --env dev
 ```
 
 Specifying environment files:
 
 ```bash
-http-client run example.http --env-file http-client.env.json --private-env-file http-client.private.env.json
+rest-client run example.http --env-file rest-client.env.json --private-env-file rest-client.private.env.json
 ```
 
 ### cURL Conversion
@@ -50,13 +50,13 @@ http-client run example.http --env-file http-client.env.json --private-env-file 
 Convert cURL commands to HTTP request format:
 
 ```bash
-http-client convert "curl https://api.example.com/users -H 'Accept: application/json'"
+rest-client convert "curl https://api.example.com/users -H 'Accept: application/json'"
 ```
 
 Convert HTTP request format to cURL commands:
 
 ```bash
-http-client to-curl example.http
+rest-client to-curl example.http
 ```
 
 ## HTTP File Format
@@ -173,7 +173,7 @@ query ($id: ID!) {
 
 ## Environment Variable Files
 
-### http-client.env.json
+### rest-client.env.json
 
 Public environment variable file:
 
@@ -190,7 +190,7 @@ Public environment variable file:
 }
 ```
 
-### http-client.private.env.json
+### rest-client.private.env.json
 
 Private environment variable file (contains sensitive information):
 

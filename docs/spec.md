@@ -321,7 +321,7 @@ Currently, configuring an SSL/TLS certificate is not supported in HTTP Client CL
 #### Specify Path to Certificate
 
 1. In an `.http` file, in the Run with list, select Add Environment to Private File.
-2. In the `http-client.private.env.json` file that opens, add the `SSLConfiguration` object to the needed environment. In `clientCertificate`, enter a path to your client certificate. If a certificate key is stored in a separate file, enter its path in `clientCertificateKey`. For example:
+2. In the `rest-client.private.env.json` file that opens, add the `SSLConfiguration` object to the needed environment. In `clientCertificate`, enter a path to your client certificate. If a certificate key is stored in a separate file, enter its path in `clientCertificateKey`. For example:
 
 ```json
 {
@@ -335,7 +335,7 @@ Currently, configuring an SSL/TLS certificate is not supported in HTTP Client CL
 }
 ```
 
-You can specify an absolute path or a path relative to the `http-client.private.env.json` file. If the environment file is stored in scratches, you can additionally specify a path relative to your project root. Start typing a path to get the code completion popup.
+You can specify an absolute path or a path relative to the `rest-client.private.env.json` file. If the environment file is stored in scratches, you can additionally specify a path relative to your project root. Start typing a path to get the code completion popup.
 
 Alternatively, you can describe `clientCertificate` and `clientCertificateKey` as objects, which lets you specify the certificate format in addition to the path. For example:
 
@@ -360,7 +360,7 @@ Alternatively, you can describe `clientCertificate` and `clientCertificateKey` a
 
 If you used a passphrase when generating your client certificate, you should provide it to the HTTP Client.
 
-1. In the `http-client.private.env.json` file, add `"hasCertificatePassphrase": true` to the `SSLConfiguration` object, for example:
+1. In the `rest-client.private.env.json` file, add `"hasCertificatePassphrase": true` to the `SSLConfiguration` object, for example:
 
 ```json
 {
@@ -382,7 +382,7 @@ You can omit the second step if you do not want to enter the passphrase now. In 
 
 For development purposes, you may have a host with self-signed or expired certificates. If you trust this host, you can disable verification of its certificate.
 
-In the `http-client.private.env.json` file, add `"verifyHostCertificate": false` to the `SSLConfiguration` object. For example:
+In the `rest-client.private.env.json` file, add `"verifyHostCertificate": false` to the `SSLConfiguration` object. For example:
 
 ```json
 {
